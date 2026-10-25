@@ -213,8 +213,10 @@ for t in repository_dispatch push schedule; do
     ok "mirror.yml has no $t trigger"
 done
 [ "$trig" = "workflow_dispatch" ] && ok "mirror.yml triggers only on workflow_dispatch" || no "mirror.yml triggers are [$trig], want exactly workflow_dispatch"
-minputs="$(yq -r '.on.workflow_dispatch.inputs // {} | keys | join(",")' "$MIR")"
-[ "$minputs" = "version" ] && ok "the only input is version" || no "mirror.yml inputs are [$minputs], want exactly version"
+minputs="$(yq -r '.on.workflow_dispatch.inputs // {} | keys | sort | join(",")' "$MIR")"
+[ "$minputs" = "resume,version" ] && ok "inputs are exactly version and resume" || no "mirror.yml inputs are [$minputs], want exactly resume,version"
+[ "$(yq -r '.on.workflow_dispatch.inputs.resume.type + "/" + (.on.workflow_dispatch.inputs.resume.default | tostring)' "$MIR")" = "boolean/false" ] &&
+  ok "resume is a boolean that defaults to false (a normal run is fresh)" || no "resume must be type boolean, default false"
 mkeys="$(yq -r '.env // {} | keys | sort | join(",")' "$MIR")"
 [ "$mkeys" = "PUBLISHER_KEY_ID,PUBLISHER_PUBKEY_B64" ] && ok "mirror.yml env is exactly the key pins" || no "mirror.yml env keys are [$mkeys]"
 nsec="$(body "$MIR" | grep -o 'secrets\.[A-Za-z0-9_]*' | sort -u | tr '\n' ' ')"
@@ -247,11 +249,14 @@ else
   ok "mirror.yml never force-moves a tag or clobbers an asset"
 fi
 runs "$MIR" | grep -q 'scripts/mirror-release.sh' && ok "the release is created through scripts/mirror-release.sh (guarded)" || no "mirror.yml must create the release through scripts/mirror-release.sh"
+runs "$MIR" | grep -q 'scripts/mirror-guard.sh .*--mode "\$MODE"' && runs "$MIR" | grep -q -- '--target "\$TARGET" --mode "\$MODE"' &&
+  [ "$(yq -r '[.jobs[].steps[] | select(.env.MODE != null) | .env.MODE] | unique | join("|")' "$MIR")" = "\${{ inputs.resume && 'resume' || 'fresh' }}" ] && ok "guard and release take --mode from the resume input only" || no "guard and release must pass --mode \"\$MODE\" with MODE from inputs.resume"
 runs "$MIR" | grep -q 'scripts/mirror-guard.sh' && ok "mirror.yml refuses an existing tag/release before fetching" || no "mirror.yml must run scripts/mirror-guard.sh before fetching"
 
 echo "── ci.yml runs make check on pull requests ──"
 [ "$(yq -r '.on | has("pull_request")' "$CI")" = "true" ] && ok "ci.yml triggers on pull_request" || no "ci.yml must trigger on pull_request"
 runs "$CI" | grep -qx 'make check' && ok "ci.yml runs make check" || no "ci.yml must run make check"
+runs "$CI" | grep -qx 'make test' && ok "ci.yml runs make test" || no "ci.yml must run make test"
 
 echo "── provenance for the pinned version (AC-16) ──"
 PROV="$ROOT/provenance/v$V.json"

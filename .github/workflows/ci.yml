@@ -1,9 +1,11 @@
 name: CI
 
-# `make check` on every pull request and on main: lint, the workflow contract,
-# its mutation proofs, the verify-before-run harness, the mirror tests, the
-# surface declaration and the vendored-script manifest. Offline apart from
-# installing pinned tools.
+# `make check` then `make test` on every pull request and on main.
+#   check: the vendored blessed files against the signed export, lint, the
+#          workflow contract, the surface declaration and blessed.yml;
+#   test:  verify-before-run, contract and export mutation proofs, the mirror
+#          and its resume path.
+# Offline apart from installing pinned tools.
 
 on:
   pull_request:
@@ -14,7 +16,7 @@ permissions: {}
 
 jobs:
   check:
-    name: make check
+    name: make check and test
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -44,3 +46,6 @@ jobs:
 
       - name: make check
         run: make check
+
+      - name: make test
+        run: make test

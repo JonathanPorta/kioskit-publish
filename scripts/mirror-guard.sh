@@ -6,15 +6,23 @@
 # FAIL CLOSED: only GitHub's explicit HTTP 404 counts as "absent". Any other
 # error (auth, rate limit, network) refuses, because it proves nothing.
 # Needs gh with GH_TOKEN able to read this repository.
+#
+# --mode fresh (default): refuse if tag v<version> or any release named v<version>
+#   exists. Every ordinary run uses this.
+# --mode resume: the OPPOSITE precondition, for finishing the promotion of a run
+#   that created the release and then failed: require that the tag AND a
+#   published (non-draft) release v<version> exist. A resume never creates or
+#   changes a tag or release; mirror-release.sh then re-verifies its assets.
 set -euo pipefail
 
-repo="" version=""
+repo="" version="" mode="fresh"
 while [ $# -gt 0 ]; do
   case "$1" in
     --repo) repo="${2:-}" && shift 2 ;;
     --version) version="${2:-}" && shift 2 ;;
+    --mode) mode="${2:-}" && shift 2 ;;
     *)
-      echo "mirror-guard: usage: mirror-guard.sh --repo OWNER/NAME --version X.Y.Z" >&2
+      echo "mirror-guard: usage: mirror-guard.sh --repo OWNER/NAME --version X.Y.Z [--mode fresh|resume]" >&2
       exit 2
       ;;
   esac
@@ -38,6 +46,25 @@ absent() {
   echo "mirror-guard: refused: cannot tell whether $1 exists: $(tr '\n' ' ' <"$err")" >&2
   exit 1
 }
+
+case "$mode" in fresh | resume) ;; *)
+  echo "mirror-guard: --mode must be fresh or resume: $mode" >&2
+  exit 2
+  ;;
+esac
+
+if [ "$mode" = resume ]; then
+  if absent "repos/$repo/git/ref/tags/$tag"; then
+    echo "mirror-guard: refused: resume needs an existing tag $tag in $repo; there is none (run without resume)" >&2
+    exit 1
+  fi
+  if absent "repos/$repo/releases/tags/$tag"; then
+    echo "mirror-guard: refused: resume needs a published release $tag in $repo; there is none" >&2
+    exit 1
+  fi
+  echo "mirror-guard: ok (resume) — tag and published release $tag exist in $repo; nothing will be created"
+  exit 0
+fi
 
 # git/ref (singular) matches exactly; git/refs would prefix-match v1.2 to v1.2.3.
 if ! absent "repos/$repo/git/ref/tags/$tag"; then

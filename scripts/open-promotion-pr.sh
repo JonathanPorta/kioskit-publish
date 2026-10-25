@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
-# open-promotion-pr.sh — commit the rendered promotion on branch
-# promote/v<version> and open a PR to main. Human review and merge are the gate;
-# the merge commit becomes the new workflow SHA callers pin.
+# open-promotion-pr.sh — find or create THE promotion PR for v<version>: branch
+# promote/v<version> -> main, carrying the change render-promotion.sh rendered
+# in the working tree. Human review and merge are the gate; the merge commit
+# becomes the new workflow SHA callers pin.
 #
-# Refuses if the branch already exists (a promotion is opened once). Pushes via
-# gh's credential helper (GH_TOKEN), so the checkout persists no credentials.
+# Idempotent, so a failed run can be resumed (kioskit#137 F4):
+#   - nothing differs from main            -> no PR needed (main already pins it)
+#   - an open PR from the branch exists    -> reuse it if the branch carries
+#                                             exactly the rendered files
+#   - the branch exists without a PR       -> open the PR from it, same check
+#   - neither                              -> commit, push, open the PR
+# A branch or PR whose content differs from the render is refused, never
+# overwritten (no force push). Pushes via gh's credential helper (GH_TOKEN), so
+# the checkout persists no credentials.
 set -euo pipefail
 
 repo="" version=""
@@ -20,28 +28,53 @@ while [ $# -gt 0 ]; do
 done
 printf '%s' "$version" | grep -Eqx '[0-9]+\.[0-9]+\.[0-9]+' || exit 2
 branch="promote/v$version"
-if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-  echo "open-promotion-pr: refused: branch $branch already exists" >&2
-  exit 1
-fi
-sha="$(yq -r '.env.PUBLISHER_SHA256' .github/workflows/kioskit-publish.yml)"
-source_sha="$(jq -r '.source_sha' "provenance/v$version.json")"
+paths=(.github/workflows/kioskit-publish.yml .github/workflows/kioskit-validate.yml "provenance/v$version.json"
+  "provenance/v$version.release-candidate.json" "provenance/v$version.release-candidate.json.sig")
+title="chore: Promote kioskit-publish $version"
 
-gh auth setup-git
-git config user.name "github-actions[bot]"
-git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-git switch -c "$branch"
-git add .github/workflows/kioskit-publish.yml .github/workflows/kioskit-validate.yml "provenance/v$version.json" \
-  "provenance/v$version.release-candidate.json" "provenance/v$version.release-candidate.json.sig"
-if git diff --cached --quiet; then
-  # main already pins exactly this candidate (the seed in this repository was
-  # rendered by the same code), so there is nothing to promote: main's head is
-  # already the workflow ref for v$version.
+git add -- "${paths[@]}"
+if git diff --cached --quiet HEAD; then
   echo "open-promotion-pr: main already pins $version with identical provenance; no PR needed"
   exit 0
 fi
-git commit -m "chore: Promote kioskit-publish $version" -m "Pins PUBLISHER_VERSION=$version and PUBLISHER_SHA256=$sha in both reusable workflows and records provenance/v$version.json (kioskd v$version, source $source_sha)."
-git push origin "$branch"
+
+gh auth setup-git
+# matches_ref REF — the rendered files (index) equal REF's copies, byte for byte.
+matches_ref() {
+  local p
+  for p in "${paths[@]}"; do
+    [ "$(git rev-parse ":$p")" = "$(git rev-parse "$1:$p" 2>/dev/null || echo missing)" ] || return 1
+  done
+}
+
+existing_pr="$(gh pr list --repo "$repo" --head "$branch" --base main --state open --json url --jq '.[].url')"
+if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+  git fetch --no-tags --depth=1 origin "refs/heads/$branch:refs/remotes/origin/$branch"
+  if ! matches_ref "refs/remotes/origin/$branch"; then
+    echo "open-promotion-pr: refused: branch $branch exists with content that differs from the render; resolve it by hand" >&2
+    exit 1
+  fi
+  echo "open-promotion-pr: branch $branch already carries the rendered promotion; reusing it"
+else
+  [ -z "$existing_pr" ] || {
+    echo "open-promotion-pr: refused: an open PR claims $branch but the branch is gone" >&2
+    exit 1
+  }
+  sha="$(yq -r '.env.PUBLISHER_SHA256' .github/workflows/kioskit-publish.yml)"
+  source_sha="$(jq -r '.source_sha' "provenance/v$version.json")"
+  git config user.name "github-actions[bot]"
+  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  git switch -c "$branch"
+  git commit -m "$title" -m "Pins PUBLISHER_VERSION=$version and PUBLISHER_SHA256=$sha in both reusable workflows and records provenance/v$version.json (kioskd v$version, source $source_sha)."
+  git push origin "$branch"
+fi
+
+if [ -n "$existing_pr" ]; then
+  echo "open-promotion-pr: the promotion PR already exists: $existing_pr"
+  exit 0
+fi
+sha="$(yq -r '.env.PUBLISHER_SHA256' .github/workflows/kioskit-publish.yml)"
+source_sha="$(jq -r '.source_sha' "provenance/v$version.json")"
 body="$(mktemp)"
 trap 'rm -f "$body"' EXIT
 cat >"$body" <<EOF
@@ -56,4 +89,4 @@ After merge, the merge commit is the new workflow ref. Add it to the Worker's
 PRs opened with the workflow token do not trigger CI: run \`make check\` locally
 or close and reopen this PR to start it.
 EOF
-gh pr create --repo "$repo" --base main --head "$branch" --title "chore: Promote kioskit-publish $version" --body-file "$body"
+gh pr create --repo "$repo" --base main --head "$branch" --title "$title" --body-file "$body"

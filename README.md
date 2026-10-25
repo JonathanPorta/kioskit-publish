@@ -101,6 +101,15 @@ identity. The steps:
    `PUBLISHER_SHA256` in both workflows and adds `provenance/v<v>.json`. The
    workflow token's PRs don't start CI, so close and reopen the PR (or run
    `make check` locally) before merging. The merge commit is the new `<S'>`.
+   **If a run fails after creating the release** (for example the PR API
+   errors), dispatch `mirror.yml` again with the same `version` and
+   **`resume: true`**. A resume creates no tag or release. It requires the
+   release to exist, checks that its five assets are exactly the files of the
+   signed kioskd candidate (verified against the trust store), re-renders the
+   provenance, and then finds or opens the single promotion PR. It reuses
+   `promote/v<v>` if that branch was already pushed with the same content, and
+   refuses a branch with different content. Without `resume`, a run for an
+   existing version is still refused.
 4. **The two-step allowlist** in kioskit: add `<S'>` to
    `publish_allowed_workflow_refs` and deploy. Then move every caller to
    `<S'>`. Then remove `<S>` and deploy again. A caller still on a removed
@@ -170,22 +179,43 @@ not exist here, so callers have no `<S>` yet. Mirroring 0.5.1 renders no
 change, so that run opens no promotion PR, and `main`'s head at that point is
 `<S>`.
 
+## Blessed adoption
+
+[`blessed.yml`](blessed.yml) declares this repository to blessed-cicd: repo
+type `library` (callers consume the workflows by direct reference), the
+adopted standards (`makefile.core@1`, `releases.surfaces@1`,
+`signing.ed25519-detached@1`), its capabilities, and owned, expiring waivers
+for the defaults it does not meet yet (`makefile.profiles@1`, the spec pack,
+and `repo-protection`, whose baseline needs owner settings changes).
+
+The blessed files vendored here come only from blessed-cicd's signed **public**
+script export: `scripts/signing/` and `scripts/release/lib/lib-json-schema.sh`.
+A public repository may not republish blessed's private categories.
+`make verify-scripts` (the first step of `make check`) checks the export's
+signed `MANIFEST.sha256` against the pinned key, and checks every vendored file
+against its signed entry, offline.
+
+`release-surfaces.yaml` and `blessed.yml` are validated against
+repository-authored schemas in [`schema/`](schema/), using the signed public
+JSON-Schema validator. blessed's own validators are private. Set
+`BLESSED_CICD_DIR=<blessed-cicd checkout>` to run them too (for
+`validate-surfaces.sh`, also point `YQ_BIN` at the yq version it pins).
+
 ## Development
 
 ```text
 make help      list targets
-make check     everything CI runs (offline): scripts, lint, contract, surface, tests
-make test      verify-before-run harness, contract mutations, mirror tests
+make check     static: signed blessed files, lint, workflow contract, surface, blessed.yml
+make test      verify-before-run, contract and export mutations, mirror and resume
 ```
 
-`make check` needs bash, jq, mikefarah yq v4, OpenSSL 3 or newer (on macOS,
-set `OPENSSL_BIN` to Homebrew's), shellcheck and actionlint. To also run
-blessed's private `validate-surfaces.sh`, set
-`BLESSED_CICD_DIR=<blessed-cicd checkout>` and point `YQ_BIN` at the yq
-version it pins.
+CI runs `make check` and `make test`. Both are offline, and both need bash,
+git, jq, mikefarah yq v4, OpenSSL 3 or newer (on macOS, set `OPENSSL_BIN` to
+Homebrew's), shellcheck and actionlint (`make deps` checks).
 
 ## License
 
 [Apache-2.0](LICENSE), Copyright 2026 Jonathan Porta. The files in
-`scripts/signing/` come from blessed-cicd's public script export and are
-Apache-2.0 under their own terms, recorded in `.blessed/export/`.
+`scripts/signing/` and `scripts/release/lib/` come from blessed-cicd's public
+script export and are Apache-2.0 under their own terms, recorded in
+`.blessed/export/`.

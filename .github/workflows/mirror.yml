@@ -17,6 +17,11 @@ name: Mirror a kioskd publisher release
 #            v<version> (refusing if it exists), then opens the promotion PR
 #            that bumps the pins and adds provenance/v<version>.json.
 #
+# resume: a run that created the release but failed before the promotion PR
+# existed can be finished by dispatching again with resume: true. It never
+# creates or moves a tag or asset (scripts/mirror-guard.sh --mode resume,
+# scripts/mirror-release.sh --mode resume, scripts/open-promotion-pr.sh).
+#
 # A version without a valid signed candidate fails in `fetch`, so no tag,
 # release or PR is created. No major alias (v1) is used: callers pin full
 # commit SHAs, so nothing here ever moves a tag.
@@ -28,6 +33,15 @@ on:
         description: kioskd release version to mirror, X.Y.Z (no leading v)
         required: true
         type: string
+      resume:
+        description: >-
+          Only finish a run that already created release v<version> and then
+          failed. Creates no tag or release: verifies the existing assets
+          against the signed candidate, re-renders the provenance and finds or
+          opens the one promotion PR. Leave off for a normal run, which
+          refuses any existing tag or release.
+        type: boolean
+        default: false
 
 permissions: {}
 
@@ -53,12 +67,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Refuse an existing tag or release
+      - name: Refuse an existing tag or release (resume requires one)
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           VERSION: ${{ inputs.version }}
-        run: bash scripts/mirror-guard.sh --repo "$REPO" --version "$VERSION"
+          MODE: ${{ inputs.resume && 'resume' || 'fresh' }}
+        run: bash scripts/mirror-guard.sh --repo "$REPO" --version "$VERSION" --mode "$MODE"
 
       - name: Fetch kioskd's release (read-only token)
         id: fetch
@@ -121,20 +136,24 @@ jobs:
             --key-id "$PUBLISHER_KEY_ID" --pubkey-b64 "$PUBLISHER_PUBKEY_B64" \
             --trust-store release-trusted-keys.json
 
-      - name: Create the immutable release (refuses an existing tag)
+      - name: Create the immutable release (resume verifies the existing one)
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           VERSION: ${{ inputs.version }}
           TARGET: ${{ github.sha }}
-        run: bash scripts/mirror-release.sh --repo "$REPO" --version "$VERSION" --dir "$RUNNER_TEMP/candidate" --target "$TARGET"
+          MODE: ${{ inputs.resume && 'resume' || 'fresh' }}
+        run: |
+          bash scripts/mirror-release.sh --repo "$REPO" --version "$VERSION" --dir "$RUNNER_TEMP/candidate" \
+            --target "$TARGET" --mode "$MODE" \
+            --key-id "$PUBLISHER_KEY_ID" --pubkey-b64 "$PUBLISHER_PUBKEY_B64" --trust-store release-trusted-keys.json
 
       - name: Render the promotion (pins and provenance)
         env:
           VERSION: ${{ inputs.version }}
         run: bash scripts/render-promotion.sh --root . --dir "$RUNNER_TEMP/candidate" --version "$VERSION"
 
-      - name: Open the promotion PR
+      - name: Find or open the promotion PR
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}

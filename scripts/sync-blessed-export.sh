@@ -12,7 +12,9 @@
 #      (no link, special file, absolute or '..' path) and every digest matches;
 #   3. identity: the signed SOURCE.json names exactly the pinned export, tag,
 #      mirror, source repository and signing key.
-# Only then are the listed signing/ files, LICENSE and SOURCE.json copied in.
+# Only then are the listed signing/ files, the JSON-Schema validator
+# (release/lib/lib-json-schema.sh), LICENSE and SOURCE.json copied in. The
+# mapping is the one scripts/verify-export.sh re-checks offline in make check.
 # Needs network and gh; `make verify-scripts` re-checks the result offline.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -91,11 +93,11 @@ mismatch="$(jq -r --arg e "$EXPORT" --arg t "$TAG" --arg m "$MIRROR" --arg r "$S
 ] | join(" ")' "$stage/$EXPORT/SOURCE.json")"
 [ -z "$mismatch" ] || refuse "the signed SOURCE.json differs from the pinned identity: $mismatch"
 
-# 4. Install: only the listed signing/ files, plus LICENSE and SOURCE.json.
-rm -rf scripts/signing .blessed/export
+# 4. Install: only the listed signing/ files, the schema validator, LICENSE and SOURCE.json.
+rm -rf scripts/signing scripts/release .blessed/export
 while IFS= read -r f; do
   case "$f" in
-    signing/*) dst="scripts/$f" ;;
+    signing/* | release/lib/lib-json-schema.sh) dst="scripts/$f" ;;
     LICENSE | SOURCE.json) dst=".blessed/export/$f" ;;
     *) continue ;;
   esac
@@ -104,5 +106,5 @@ while IFS= read -r f; do
 done <<<"$listed"
 cp "$tmp/MANIFEST.sha256" "$tmp/MANIFEST.sha256.sig" .blessed/export/
 chmod +x scripts/signing/*.sh
-(cd scripts/signing && shasum -a 256 -c MANIFEST.sha256)
-echo "sync-blessed-export: installed scripts/signing/ from $MIRROR@$TAG"
+bash scripts/verify-export.sh
+echo "sync-blessed-export: installed scripts/signing/ and scripts/release/lib/lib-json-schema.sh from $MIRROR@$TAG"
