@@ -1,0 +1,97 @@
+# blessed/repo/v1
+# Repo-local manifest (blessed-cicd templates/blessed.yml). Declares what this
+# repository is and which blessed standards it adopts; validated offline by
+# `make check` (test/blessed-manifest.test.sh).
+#
+# kioskit-publish is the PUBLIC distribution point for kioskd's prebuilt,
+# signed `kioskit-publish` binary and the two reusable workflows that run it.
+# Tenant state repositories consume it as code, by direct reference
+# (`uses: JonathanPorta/kioskit-publish/.github/workflows/<file>@<sha>`), which
+# is why it is declared a `library`. It builds nothing: binaries are mirrored
+# unchanged from kioskd's signed releases by mirror.yml (surface-pull).
+
+schema: blessed/repo/v1
+
+project: kioskit
+component: kioskit-publish
+repo_type: library
+# No release has been mirrored yet (task 6.0); callers have no pinned SHA.
+stage: prototype
+
+stack:
+  - bash
+  - github-actions
+
+standards:
+  # help deps install dev format check test build docs clean (Makefile).
+  - makefile.core@1
+  # release-surfaces.yaml: public-github-mirror, surface-pull, workflow_dispatch;
+  # the mirror verifies kioskd's candidate, owns the tags and releases, and
+  # opens the promotion PR. Provenance in provenance/v<version>.json.
+  - releases.surfaces@1
+  # Verifier side only: every binary and manifest is checked against
+  # release-trusted-keys.json (kioskitd-2026-01) with blessed's verify.sh from
+  # the signed public script export. This repository holds no signing key.
+  - signing.ed25519-detached@1
+
+capabilities:
+  # Every action is pinned to a full commit SHA (test/workflow-contract.test.sh).
+  - sha-pinning
+  # .ai-rules/ subtree; version in .ai-rules/.version.
+  - ai-rules-subtree
+
+tracked_dependencies:
+  ai_rules:
+    origin: https://github.com/JonathanPorta/ai-rules
+    tag: v0.13.2
+  # No private blessed script category is vendored (a public repository may
+  # not). scripts/signing/ and scripts/release/ (validate-surfaces.sh, its
+  # schema and lib-json-schema.sh) come from the signed public export pinned in scripts/.blessed-export-version and are
+  # re-verified by `make verify-scripts`.
+  blessed_scripts:
+    bws: null
+    ruam: null
+
+# Scoped exceptions to blessed policy/adoption.yml defaults. Each is owned and
+# expires; none relaxes a check this repository runs.
+waivers:
+  - standard: makefile.profiles@1
+    check: library-profile-targets
+    reason: >-
+      The library profile adds package, release and publish. This repository
+      builds and packages nothing; releases are created only by mirror.yml from
+      kioskd's verified candidate (surface-pull), so local package/release/
+      publish targets would be empty ceremony (makefile.capability-verbs).
+    owner: Jonathan
+    review_by: "2027-04-23"
+  - standard: spec-pack.core@1
+    check: spec-pack-present
+    reason: >-
+      The requirements are the approved PRD and task list in kioskit
+      (tasks/phase-3/prd-public-publisher.md, tasks-public-publisher.md,
+      JonathanPorta/kioskit#137); a second spec pack here would duplicate them.
+    owner: Jonathan
+    review_by: "2027-04-23"
+  - standard: spec-pack.profiles@1
+    check: spec-pack-present
+    reason: Same as spec-pack.core@1; the spec lives in kioskit.
+    owner: Jonathan
+    review_by: "2027-04-23"
+  - capability: repo-protection
+    check: repo-baseline
+    reason: >-
+      The main ruleset requires a PR and forbids force-push and deletion, and
+      releases are immutable, but blessed's policy/repo-baseline.yml is not met
+      yet (merge-method settings, required status checks, review dismissal and
+      thread resolution, a v* tag ruleset). One deviation is intrinsic:
+      mirror.yml opens the promotion PR with the workflow token, which needs
+      "Allow GitHub Actions to create and approve pull requests". Repository
+      settings are the owner's to change.
+    owner: Jonathan
+    review_by: "2027-01-23"
+
+exceptions: []   # legacy alias only; prefer `waivers`
+
+notes: |
+  Approved design: kioskit tasks/phase-3/prd-public-publisher.md (#137).
+  Trust model, callers, backfill and upgrading: README.md.

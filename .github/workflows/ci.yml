@@ -1,0 +1,69 @@
+name: CI
+
+# `make check` then `make test` on every pull request and on main.
+#   check: the vendored blessed files against the signed export, lint, the
+#          workflow contract, the surface declaration and blessed.yml;
+#   test:  verify-before-run, contract and export mutation proofs, the mirror
+#          and its resume path.
+# Offline apart from installing pinned tools.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  check:
+    name: make check and test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Install actionlint (pinned by version and sha256)
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/al.tgz" "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  $RUNNER_TEMP/al.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/al.tgz" -C "$RUNNER_TEMP" actionlint
+          sudo install -m 0755 "$RUNNER_TEMP/actionlint" /usr/local/bin/actionlint
+
+      # blessed's validate-surfaces.sh accepts only Mike Farah yq 4.53.2 (the
+      # version its preflight was tested against), so the runner's yq is not
+      # used: install exactly that build, verified against the upstream sha256
+      # (release `checksums`, SHA-256 column), first on PATH and as YQ_BIN.
+      - name: Install yq 4.53.2 (pinned by version and sha256)
+        env:
+          YQ_VERSION: v4.53.2
+          YQ_SHA256: d56bf5c6819e8e696340c312bd70f849dc1678a7cda9c2ad63eebd906371d56b
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/yq-bin"
+          curl -fsSL -o "$RUNNER_TEMP/yq-bin/yq" "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  $RUNNER_TEMP/yq-bin/yq" | sha256sum -c -
+          chmod 0755 "$RUNNER_TEMP/yq-bin/yq"
+          echo "$RUNNER_TEMP/yq-bin" >> "$GITHUB_PATH"
+          echo "YQ_BIN=$RUNNER_TEMP/yq-bin/yq" >> "$GITHUB_ENV"
+
+      - name: Tool versions
+        run: |
+          yq --version
+          "$YQ_BIN" --version
+          jq --version
+          openssl version
+          shellcheck --version | head -n 2
+
+      - name: make check
+        run: make check
+
+      - name: make test
+        run: make test

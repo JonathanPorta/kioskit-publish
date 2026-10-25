@@ -1,0 +1,16 @@
+# Pinned blessed-cicd PUBLIC script export (blessed-cicd scripts/INSTALL.md,
+# "Public consumers: the public script export"). This repository is public, so
+# it must not vendor private blessed-cicd category tarballs; it installs only
+# the signed, Apache-2.0 public export. `make sync-scripts` re-installs exactly
+# this tag; `make verify-scripts` re-checks the committed files offline.
+EXPORT_MIRROR=JonathanPorta/blessed-cicd-scripts
+EXPORT_NAME=public-consumer-core
+EXPORT_TAG=public-consumer-core-v1.1.0
+EXPORT_SOURCE_REPO=JonathanPorta/blessed-cicd
+# The export signing key. Confirmed out of band against the private
+# blessed-cicd repository's scripts/exports/trust-store.json, never against the
+# mirror. The committed copy lives in .blessed/export-trust-store.json.
+EXPORT_KEY_ID=blessed-cicd-script-export-2026-10
+# Its public key (raw ed25519, base64). verify-export.sh requires the trust
+# store to hold exactly this key as active, so neither can drift alone.
+EXPORT_PUBKEY_B64=mDE53Qh1ncne7aiTT9ewSH8e/9Q9z5D8GCjNZV99W40=

@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# open-promotion-pr.sh — find or create THE promotion PR for v<version>: branch
+# promote/v<version> -> main, carrying the change render-promotion.sh rendered
+# in the working tree. Human review and merge are the gate; the merge commit
+# becomes the new workflow SHA callers pin.
+#
+# Idempotent, so a failed run can be resumed (kioskit#137 F4):
+#   - nothing differs from main            -> no PR needed (main already pins it)
+#   - an open PR from the branch exists    -> reuse it if the branch's complete
+#                                             diff against its merge-base with
+#                                             main is exactly the rendered set
+#   - the branch exists without a PR       -> open the PR from it, same check
+#   - neither                              -> commit, push, open the PR
+# A branch or PR whose content differs from the render is refused, never
+# overwritten (no force push). Pushes via gh's credential helper (GH_TOKEN), so
+# the checkout persists no credentials.
+set -euo pipefail
+
+repo="" version=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --repo) repo="${2:-}" && shift 2 ;;
+    --version) version="${2:-}" && shift 2 ;;
+    *)
+      echo "open-promotion-pr: usage: open-promotion-pr.sh --repo OWNER/NAME --version X.Y.Z" >&2
+      exit 2
+      ;;
+  esac
+done
+printf '%s' "$version" | grep -Eqx '[0-9]+\.[0-9]+\.[0-9]+' || exit 2
+branch="promote/v$version"
+paths=(.github/workflows/kioskit-publish.yml .github/workflows/kioskit-validate.yml "provenance/v$version.json"
+  "provenance/v$version.release-candidate.json" "provenance/v$version.release-candidate.json.sig")
+title="chore: Promote kioskit-publish $version"
+
+git add -- "${paths[@]}"
+if git diff --cached --quiet HEAD; then
+  echo "open-promotion-pr: main already pins $version with identical provenance; no PR needed"
+  exit 0
+fi
+
+gh auth setup-git
+# The rendered promotion: exactly the paths this render changes against HEAD.
+rendered="$(git diff --cached --no-renames --name-only HEAD | LC_ALL=C sort)"
+
+# matches_ref REF — REF's COMPLETE change against its merge-base with HEAD
+# (main as checked out) is exactly the rendered promotion: the same paths with
+# the same blobs, nothing added, nothing deleted, nothing else modified. Only
+# then may an already-pushed branch be reused.
+matches_ref() {
+  local ref="$1" base changed p
+  base="$(git merge-base HEAD "$ref" 2>/dev/null)" || {
+    echo "open-promotion-pr: $ref shares no history with main" >&2
+    return 1
+  }
+  changed="$(git diff --no-renames --name-only "$base" "$ref" | LC_ALL=C sort)"
+  if [ "$changed" != "$rendered" ]; then
+    echo "open-promotion-pr: $ref changes [$(tr '\n' ' ' <<<"$changed")] against main; the render changes [$(tr '\n' ' ' <<<"$rendered")]" >&2
+    return 1
+  fi
+  if git diff --no-renames --name-status "$base" "$ref" | grep -q '^D'; then
+    echo "open-promotion-pr: $ref deletes a path" >&2
+    return 1
+  fi
+  while IFS= read -r p; do
+    [ "$(git rev-parse ":$p")" = "$(git rev-parse "$ref:$p" 2>/dev/null || echo missing)" ] || {
+      echo "open-promotion-pr: $ref has different bytes for $p" >&2
+      return 1
+    }
+  done <<<"$rendered"
+}
+
+existing_pr="$(gh pr list --repo "$repo" --head "$branch" --base main --state open --json url --jq '.[].url')"
+if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+  # Full history of the branch and main, so the merge-base is real (the
+  # Actions checkout is shallow).
+  if [ "$(git rev-parse --is-shallow-repository)" = true ]; then git fetch --no-tags --unshallow origin; fi
+  git fetch --no-tags origin "+refs/heads/$branch:refs/remotes/origin/$branch"
+  if ! matches_ref "refs/remotes/origin/$branch"; then
+    echo "open-promotion-pr: refused: branch $branch exists with content that differs from the render; resolve it by hand" >&2
+    exit 1
+  fi
+  echo "open-promotion-pr: branch $branch already carries the rendered promotion; reusing it"
+else
+  [ -z "$existing_pr" ] || {
+    echo "open-promotion-pr: refused: an open PR claims $branch but the branch is gone" >&2
+    exit 1
+  }
+  sha="$(yq -r '.env.PUBLISHER_SHA256' .github/workflows/kioskit-publish.yml)"
+  source_sha="$(jq -r '.source_sha' "provenance/v$version.json")"
+  git config user.name "github-actions[bot]"
+  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  git switch -c "$branch"
+  git commit -m "$title" -m "Pins PUBLISHER_VERSION=$version and PUBLISHER_SHA256=$sha in both reusable workflows and records provenance/v$version.json (kioskd v$version, source $source_sha)."
+  git push origin "$branch"
+fi
+
+if [ -n "$existing_pr" ]; then
+  echo "open-promotion-pr: the promotion PR already exists: $existing_pr"
+  exit 0
+fi
+sha="$(yq -r '.env.PUBLISHER_SHA256' .github/workflows/kioskit-publish.yml)"
+source_sha="$(jq -r '.source_sha' "provenance/v$version.json")"
+body="$(mktemp)"
+trap 'rm -f "$body"' EXIT
+cat >"$body" <<EOF
+Generated by mirror.yml after release [v$version](https://github.com/$repo/releases/tag/v$version) was created from the signed kioskd candidate.
+
+- \`PUBLISHER_VERSION\` → \`$version\`, \`PUBLISHER_SHA256\` → \`$sha\` (both workflows)
+- \`provenance/v$version.json\`: kioskd \`v$version\` @ \`$source_sha\`, plus the signed manifest it was read from
+
+After merge, the merge commit is the new workflow ref. Add it to the Worker's
+\`PUBLISH_ALLOWED_WORKFLOW_REFS\` before moving callers (README, "Upgrading").
+
+PRs opened with the workflow token do not trigger CI: run \`make check\` locally
+or close and reopen this PR to start it.
+EOF
+gh pr create --repo "$repo" --base main --head "$branch" --title "$title" --body-file "$body"

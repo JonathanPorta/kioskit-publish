@@ -1,0 +1,119 @@
+name: Kioskit publish (reusable)
+
+# Reusable workflow that publishes every device bundle in a Kioskit state
+# repository. Tenant state repos install a THIN caller (README.md, "Callers")
+# that pins this file by full commit SHA and passes no secrets.
+#
+# The Kioskit Worker authorizes uploads by the OIDC token's `job_workflow_ref`,
+# which for this workflow is:
+#
+#   JonathanPorta/kioskit-publish/.github/workflows/kioskit-publish.yml@<ref the caller pinned>
+#
+# Nothing is built here. The publisher is kioskd's prebuilt, signed
+# `kioskit-publish_<version>_linux_amd64`, mirrored into this repository's
+# immutable public Releases by mirror.yml. The pins below select ONE binary:
+# it is downloaded anonymously, its SHA-256 is checked against
+# PUBLISHER_SHA256, its ed25519 signature and the signed release manifest are
+# checked against PUBLISHER_PUBKEY_B64 (which must equal the committed
+# release-trusted-keys.json), and only then is it run
+# (scripts/verify-publisher.sh). Any failure stops the job before the binary
+# executes. The pins are identical to kioskit-validate.yml's and change only
+# through a reviewed promotion PR; test/workflow-contract.test.sh enforces both.
+#
+# Hygiene (JonathanPorta/kioskit#66, ported from kioskd): no top-level
+# permissions; the job gets only contents:read + id-token:write; every action
+# pinned to a full commit SHA; no persisted credentials; no untrusted value is
+# expanded inside a `run:` script (everything goes through `env:`); no
+# cancel-in-progress — every run is a full reconciliation, and the Worker
+# orders publications by Git ancestry.
+
+on:
+  workflow_call:
+    # There is deliberately NO destination input. The publisher always uploads
+    # to https://api.kioskit.io (compiled in; https only; redirects refused).
+    # A caller-selectable destination would let a state repository collect the
+    # allowlisted publish token and replay it to the real Worker with other
+    # bytes. There are no secrets either: nothing private is read.
+    # test/workflow-contract.test.sh enforces this.
+    inputs:
+      parallelism:
+        description: Maximum concurrent device uploads (1-16).
+        type: number
+        default: 4
+
+permissions: {}
+
+env:
+  PUBLISHER_VERSION: "0.5.1"
+  PUBLISHER_SHA256: "8c09efcfa8fcfafb7afd8eae7f9d9a1c4b5a9ecf75a97731ae52059c3c755f14"
+  PUBLISHER_KEY_ID: "kioskitd-2026-01"
+  PUBLISHER_PUBKEY_B64: "PTd5F+ilIM5ZBp9mDjQ83num4nDnhDwv9G6Vf7kzA/Q="
+
+jobs:
+  publish:
+    name: Publish device bundles
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Resolve this workflow's pinned commit
+        id: self
+        env:
+          WORKFLOW_REPOSITORY: ${{ job.workflow_repository }}
+          WORKFLOW_REF: ${{ job.workflow_ref }}
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: |
+          set -euo pipefail
+          if ! printf '%s' "$WORKFLOW_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::job.workflow_sha is not a full commit SHA"
+            exit 1
+          fi
+          if ! printf '%s' "$WORKFLOW_REPOSITORY" | grep -Eq '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$'; then
+            echo "::error::job.workflow_repository is not owner/name"
+            exit 1
+          fi
+          {
+            echo "repository=$WORKFLOW_REPOSITORY"
+            echo "sha=$WORKFLOW_SHA"
+          } >> "$GITHUB_OUTPUT"
+          echo "publisher workflow: $WORKFLOW_REF"
+          echo "verifier source:    $WORKFLOW_REPOSITORY@$WORKFLOW_SHA"
+
+      - name: Check out the verifier and trust store at the pinned commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          repository: ${{ steps.self.outputs.repository }}
+          ref: ${{ steps.self.outputs.sha }}
+          path: .kioskit-publish
+          persist-credentials: false
+
+      - name: Check out the state repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          path: state
+          persist-credentials: false
+          lfs: false
+          submodules: false
+
+      - name: Download the pinned publisher (anonymous)
+        id: fetch
+        run: bash .kioskit-publish/scripts/fetch-publisher.sh --version "$PUBLISHER_VERSION" --out "$RUNNER_TEMP/kioskit-publisher"
+
+      - name: Verify digest, signatures and manifest entry
+        id: verify
+        run: |
+          bash .kioskit-publish/scripts/verify-publisher.sh \
+            --dir "$RUNNER_TEMP/kioskit-publisher" \
+            --version "$PUBLISHER_VERSION" \
+            --sha256 "$PUBLISHER_SHA256" \
+            --key-id "$PUBLISHER_KEY_ID" \
+            --pubkey-b64 "$PUBLISHER_PUBKEY_B64" \
+            --trust-store .kioskit-publish/release-trusted-keys.json \
+            --install "$RUNNER_TEMP/kioskit-publisher/bin/kioskit-publish"
+
+      - name: Validate all, build all, publish all
+        env:
+          PUBLISH_PARALLELISM: ${{ inputs.parallelism }}
+        run: '"$RUNNER_TEMP/kioskit-publisher/bin/kioskit-publish" publish --repo-root state --parallelism "$PUBLISH_PARALLELISM"'

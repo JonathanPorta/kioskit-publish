@@ -1,0 +1,3 @@
+# ok/no helpers always return 0, so `cond && ok … || no …` is a safe if/else
+# in the test scripts (SC2015 would otherwise flag every assertion).
+disable=SC2015
