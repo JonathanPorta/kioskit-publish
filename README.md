@@ -106,10 +106,11 @@ identity. The steps:
    **`resume: true`**. A resume creates no tag or release. It requires the
    release to exist, checks that its five assets are exactly the files of the
    signed kioskd candidate (verified against the trust store), re-renders the
-   provenance, and then finds or opens the single promotion PR. It reuses
-   `promote/v<v>` if that branch was already pushed with the same content, and
-   refuses a branch with different content. Without `resume`, a run for an
-   existing version is still refused.
+   provenance, and then finds or opens the single promotion PR. It reuses an
+   already-pushed `promote/v<v>` only if that branch's whole diff against
+   `main` is exactly the rendered change (same files, same bytes, nothing
+   added or deleted), and refuses any other branch. Without `resume`, a run
+   for an existing version is still refused.
 4. **The two-step allowlist** in kioskit: add `<S'>` to
    `publish_allowed_workflow_refs` and deploy. Then move every caller to
    `<S'>`. Then remove `<S>` and deploy again. A caller still on a removed
