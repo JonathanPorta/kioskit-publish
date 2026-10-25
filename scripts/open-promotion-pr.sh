@@ -6,8 +6,9 @@
 #
 # Idempotent, so a failed run can be resumed (kioskit#137 F4):
 #   - nothing differs from main            -> no PR needed (main already pins it)
-#   - an open PR from the branch exists    -> reuse it if the branch carries
-#                                             exactly the rendered files
+#   - an open PR from the branch exists    -> reuse it if the branch's complete
+#                                             diff against its merge-base with
+#                                             main is exactly the rendered set
 #   - the branch exists without a PR       -> open the PR from it, same check
 #   - neither                              -> commit, push, open the PR
 # A branch or PR whose content differs from the render is refused, never
@@ -39,17 +40,42 @@ if git diff --cached --quiet HEAD; then
 fi
 
 gh auth setup-git
-# matches_ref REF — the rendered files (index) equal REF's copies, byte for byte.
+# The rendered promotion: exactly the paths this render changes against HEAD.
+rendered="$(git diff --cached --no-renames --name-only HEAD | LC_ALL=C sort)"
+
+# matches_ref REF — REF's COMPLETE change against its merge-base with HEAD
+# (main as checked out) is exactly the rendered promotion: the same paths with
+# the same blobs, nothing added, nothing deleted, nothing else modified. Only
+# then may an already-pushed branch be reused.
 matches_ref() {
-  local p
-  for p in "${paths[@]}"; do
-    [ "$(git rev-parse ":$p")" = "$(git rev-parse "$1:$p" 2>/dev/null || echo missing)" ] || return 1
-  done
+  local ref="$1" base changed p
+  base="$(git merge-base HEAD "$ref" 2>/dev/null)" || {
+    echo "open-promotion-pr: $ref shares no history with main" >&2
+    return 1
+  }
+  changed="$(git diff --no-renames --name-only "$base" "$ref" | LC_ALL=C sort)"
+  if [ "$changed" != "$rendered" ]; then
+    echo "open-promotion-pr: $ref changes [$(tr '\n' ' ' <<<"$changed")] against main; the render changes [$(tr '\n' ' ' <<<"$rendered")]" >&2
+    return 1
+  fi
+  if git diff --no-renames --name-status "$base" "$ref" | grep -q '^D'; then
+    echo "open-promotion-pr: $ref deletes a path" >&2
+    return 1
+  fi
+  while IFS= read -r p; do
+    [ "$(git rev-parse ":$p")" = "$(git rev-parse "$ref:$p" 2>/dev/null || echo missing)" ] || {
+      echo "open-promotion-pr: $ref has different bytes for $p" >&2
+      return 1
+    }
+  done <<<"$rendered"
 }
 
 existing_pr="$(gh pr list --repo "$repo" --head "$branch" --base main --state open --json url --jq '.[].url')"
 if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-  git fetch --no-tags --depth=1 origin "refs/heads/$branch:refs/remotes/origin/$branch"
+  # Full history of the branch and main, so the merge-base is real (the
+  # Actions checkout is shallow).
+  if [ "$(git rev-parse --is-shallow-repository)" = true ]; then git fetch --no-tags --unshallow origin; fi
+  git fetch --no-tags origin "+refs/heads/$branch:refs/remotes/origin/$branch"
   if ! matches_ref "refs/remotes/origin/$branch"; then
     echo "open-promotion-pr: refused: branch $branch exists with content that differs from the render; resolve it by hand" >&2
     exit 1

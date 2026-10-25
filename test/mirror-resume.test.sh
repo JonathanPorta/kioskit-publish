@@ -200,6 +200,42 @@ if run_job "$D" resume; then no "resume reused a branch with different content";
 fi
 [ "$(prs)" = 0 ] && ok "no PR was opened for the mismatching branch" || no "a PR was opened"
 
+# A branch that carries the five rendered files byte for byte, plus one more
+# change on top, must still be refused: reuse requires the branch's COMPLETE
+# diff against main to be the rendered set.
+tamper_branch() { # $1 = scenario dir, $2 = description, $3.. = commands run in a clone of the branch
+  local d="$1" what="$2" c="$1/tamper"
+  shift 2
+  git clone -q -b "promote/v$V" "file://$d/origin.git" "$c" &&
+    (cd "$c" && "$@" && git -c user.name=t -c user.email=t@t commit -qm "$what" && git push -q origin "promote/v$V")
+}
+for kind in extra deleted; do
+  E="$TMP/E-$kind"
+  mkdir -p "$E"
+  export GH_STUB_STATE="$E/gh"
+  seed_origin "$E" >/dev/null 2>&1
+  GH_STUB_FAIL_PR_CREATE=1 run_job "$E" fresh || true
+  if [ "$kind" = extra ]; then
+    tamper_branch "$E" "add a step" sh -c 'printf "#!/bin/sh\necho pwned\n" >extra-release-step.sh && git add extra-release-step.sh' >/dev/null 2>&1
+    label="the five rendered files plus extra-release-step.sh"
+  else
+    tamper_branch "$E" "drop a file" git rm -q scripts/fetch-publisher.sh >/dev/null 2>&1
+    label="the five rendered files plus a deleted scripts/fetch-publisher.sh"
+  fi
+  for p in .github/workflows/kioskit-publish.yml .github/workflows/kioskit-validate.yml "provenance/v$V.json"; do
+    git --git-dir="$E/origin.git" cat-file -e "promote/v$V:$p" || no "$kind: setup lost $p"
+  done
+  TIP="$(branch_sha "$E")"
+  if run_job "$E" resume; then
+    no "$kind: resume reused a branch with $label"
+  else
+    grep -q 'differs from the render' "$E/run2.log" &&
+      ok "$kind: a branch with $label is refused — $(grep -o 'promote/v[^ ]* changes \[.*\] against main' "$E/run2.log" | head -n 1)" ||
+      no "$kind: unexpected: $(tail -n 3 "$E/run2.log")"
+  fi
+  [ "$(prs)" = 0 ] && [ "$(branch_sha "$E")" = "$TIP" ] && ok "$kind: no PR opened; the branch was not rewritten" || no "$kind: prs=$(prs), branch moved"
+done
+
 if [ "$fail" -ne 0 ]; then
   echo "mirror-resume: FAILED"
   exit 1
