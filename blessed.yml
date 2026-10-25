@@ -45,8 +45,8 @@ tracked_dependencies:
     origin: https://github.com/JonathanPorta/ai-rules
     tag: v0.13.2
   # No private blessed script category is vendored (a public repository may
-  # not). scripts/signing/ and scripts/release/lib/lib-json-schema.sh come from
-  # the signed public export pinned in scripts/.blessed-export-version and are
+  # not). scripts/signing/ and scripts/release/ (validate-surfaces.sh, its
+  # schema and lib-json-schema.sh) come from the signed public export pinned in scripts/.blessed-export-version and are
   # re-verified by `make verify-scripts`.
   blessed_scripts:
     bws: null

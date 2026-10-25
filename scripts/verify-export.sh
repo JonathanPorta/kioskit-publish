@@ -11,6 +11,9 @@
 #   3. Every installed file equals its signed manifest entry, byte for byte:
 #        signing/*                     -> scripts/signing/*
 #        release/lib/lib-json-schema.sh -> scripts/release/lib/lib-json-schema.sh
+#        release/validate-surfaces.sh   -> scripts/release/validate-surfaces.sh
+#        release/references/release-surfaces.schema.json
+#                                       -> scripts/release/references/release-surfaces.schema.json
 #        LICENSE, SOURCE.json           -> .blessed/export/
 #      and scripts/signing/ and scripts/release/ hold nothing else (closed set).
 #      A per-category MANIFEST.sha256 inside scripts/signing/ is itself just one
@@ -56,7 +59,7 @@ echo "verify-export: ok — MANIFEST.sha256 is signed by $EXPORT_KEY_ID ($EXPORT
 # 3. Installed files equal their signed entries; closed set.
 dst_of() {
   case "$1" in
-    signing/* | release/lib/lib-json-schema.sh) echo "scripts/$1" ;;
+    signing/* | release/lib/lib-json-schema.sh | release/validate-surfaces.sh | release/references/release-surfaces.schema.json) echo "scripts/$1" ;;
     LICENSE | SOURCE.json) echo ".blessed/export/$1" ;;
     *) echo "" ;;
   esac

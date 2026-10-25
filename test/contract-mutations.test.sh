@@ -58,6 +58,7 @@ CASES=(
   "mirror-resume-default-on|resume must be type boolean, default false|yq -i '.on.workflow_dispatch.inputs.resume.default = true' $M"
   "mirror-guard-always-resume|guard and release must pass --mode|yq -i '.jobs.fetch.steps[1].env.MODE = \"resume\"' $M"
   "ci-skips-tests|ci.yml must run make test|yq -i 'del(.jobs.check.steps[-1])' .github/workflows/ci.yml"
+  "ci-unpinned-yq|ci.yml must install yq v4.53.2|yq -i '(.jobs.check.steps[] | select(.env.YQ_SHA256 != null) | .env.YQ_SHA256) = \"0000000000000000000000000000000000000000000000000000000000000000\"' .github/workflows/ci.yml"
   "provenance-source-sha|source_sha (must equal the signed manifest source_sha)|jq '.source_sha = \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"' provenance/v0.5.1.json >x && mv x provenance/v0.5.1.json"
   "provenance-missing|must exist for the pinned version|rm provenance/v0.5.1.json"
   "provenance-unsigned|does not verify with kioskitd-2026-01|jq '.created_at = \"2026-10-26T00:00:00Z\"' provenance/v0.5.1.release-candidate.json >x && mv x provenance/v0.5.1.release-candidate.json"

@@ -190,17 +190,22 @@ for the defaults it does not meet yet (`makefile.profiles@1`, the spec pack,
 and `repo-protection`, whose baseline needs owner settings changes).
 
 The blessed files vendored here come only from blessed-cicd's signed **public**
-script export: `scripts/signing/` and `scripts/release/lib/lib-json-schema.sh`.
+script export (`public-consumer-core-v1.1.0`): `scripts/signing/`, and
+`scripts/release/` (`validate-surfaces.sh`, its schema and its JSON-Schema
+library).
 A public repository may not republish blessed's private categories.
 `make verify-scripts` (the first step of `make check`) checks the export's
 signed `MANIFEST.sha256` against the pinned key, and checks every vendored file
 against its signed entry, offline.
 
-`release-surfaces.yaml` and `blessed.yml` are validated against
-repository-authored schemas in [`schema/`](schema/), using the signed public
-JSON-Schema validator. blessed's own validators are private. Set
-`BLESSED_CICD_DIR=<blessed-cicd checkout>` to run them too (for
-`validate-surfaces.sh`, also point `YQ_BIN` at the yq version it pins).
+`make check` validates `release-surfaces.yaml` with blessed's canonical
+`validate-surfaces.sh`. That validator accepts only Mike Farah yq **4.53.2**,
+so set `YQ_BIN` to that build; CI downloads it from the upstream release and
+checks its sha256. blessed's repo-manifest validator is not in the public
+export, so `blessed.yml` is validated against a repository-authored schema
+([`schema/blessed-repo.schema.json`](schema/blessed-repo.schema.json)) with the
+export's JSON-Schema library. Set `BLESSED_CICD_DIR=<blessed-cicd checkout>`
+to also run blessed's private catalog validator on it.
 
 ## Development
 
@@ -211,8 +216,9 @@ make test      verify-before-run, contract and export mutations, mirror and resu
 ```
 
 CI runs `make check` and `make test`. Both are offline, and both need bash,
-git, jq, mikefarah yq v4, OpenSSL 3 or newer (on macOS, set `OPENSSL_BIN` to
-Homebrew's), shellcheck and actionlint (`make deps` checks).
+git, jq, mikefarah yq v4 (exactly 4.53.2 as `YQ_BIN` for the surface check),
+OpenSSL 3 or newer (on macOS, set `OPENSSL_BIN` to Homebrew's), shellcheck and
+actionlint (`make deps` checks).
 
 ## License
 

@@ -5,7 +5,7 @@
 # this tag; `make verify-scripts` re-checks the committed files offline.
 EXPORT_MIRROR=JonathanPorta/blessed-cicd-scripts
 EXPORT_NAME=public-consumer-core
-EXPORT_TAG=public-consumer-core-v1.0.0
+EXPORT_TAG=public-consumer-core-v1.1.0
 EXPORT_SOURCE_REPO=JonathanPorta/blessed-cicd
 # The export signing key. Confirmed out of band against the private
 # blessed-cicd repository's scripts/exports/trust-store.json, never against the

@@ -5,6 +5,7 @@
 # Everything here is offline except `sync-scripts` (fetches the pinned blessed
 # public script export). Needs bash, git, jq, mikefarah yq v4, OpenSSL >= 3
 # (macOS: set OPENSSL_BIN to Homebrew's openssl), shellcheck and actionlint.
+# blessed's validate-surfaces.sh needs yq EXACTLY 4.53.2: set YQ_BIN to it.
 .DEFAULT_GOAL := help
 SHELL := bash
 
@@ -21,6 +22,7 @@ deps: ## Check the toolchain (bash git jq yq openssl>=3 shellcheck actionlint); 
 	@missing=0; for t in $(TOOLS); do command -v $$t >/dev/null 2>&1 || { echo "missing: $$t"; missing=1; }; done; \
 	"$${OPENSSL_BIN:-openssl}" version | grep -Eq '^OpenSSL ([3-9]|[1-9][0-9])' || { echo "need OpenSSL >= 3 (set OPENSSL_BIN)"; missing=1; }; \
 	yq --version | grep -q mikefarah || { echo "need mikefarah yq v4"; missing=1; }; \
+	"$${YQ_BIN:-yq}" --version | grep -q 'version v4.53.2$$' || { echo "need YQ_BIN = mikefarah yq 4.53.2 (blessed validate-surfaces.sh)"; missing=1; }; \
 	[ $$missing -eq 0 ] && echo "deps OK"
 
 install: deps ## Developer setup: verify the toolchain (no hooks or local tools are installed)

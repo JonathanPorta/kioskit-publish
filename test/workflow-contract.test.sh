@@ -257,6 +257,11 @@ echo "── ci.yml runs make check on pull requests ──"
 [ "$(yq -r '.on | has("pull_request")' "$CI")" = "true" ] && ok "ci.yml triggers on pull_request" || no "ci.yml must trigger on pull_request"
 runs "$CI" | grep -qx 'make check' && ok "ci.yml runs make check" || no "ci.yml must run make check"
 runs "$CI" | grep -qx 'make test' && ok "ci.yml runs make test" || no "ci.yml must run make test"
+yqstep="$(yq -r '.jobs[].steps[] | select(.env.YQ_VERSION != null) | .env.YQ_VERSION + " " + .env.YQ_SHA256' "$CI")"
+[ "$yqstep" = "v4.53.2 d56bf5c6819e8e696340c312bd70f849dc1678a7cda9c2ad63eebd906371d56b" ] &&
+  runs "$CI" | grep -q 'sha256sum -c' && runs "$CI" | grep -q 'YQ_BIN=' &&
+  ok "ci.yml installs yq v4.53.2, sha256-verified, as YQ_BIN (blessed validate-surfaces.sh pins it)" ||
+  no "ci.yml must install yq v4.53.2 with sha256 d56bf5c6… verified and export YQ_BIN"
 
 echo "── provenance for the pinned version (AC-16) ──"
 PROV="$ROOT/provenance/v$V.json"
