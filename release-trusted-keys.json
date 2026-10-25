@@ -1,0 +1,11 @@
+{
+  "_comment": "kioskd's release trust store. The ONE public key here is byte-identical to install.DefaultSelfUpdatePublicKey — the anchor compiled into the daemon and used by the self-updater to verify what it downloads. Candidate validation and device verification therefore answer to the same authority: a release this store accepts is a release the fleet will accept, and one it rejects cannot be published. Keeping two separate keys here would let a candidate validate while every device refused it.",
+  "schema": "blessed/signing-trust-store/v1",
+  "keys": {
+    "kioskitd-2026-01": {
+      "profile": "ed25519-detached-v1",
+      "public_key_base64": "PTd5F+ilIM5ZBp9mDjQ83num4nDnhDwv9G6Vf7kzA/Q=",
+      "status": "active"
+    }
+  }
+}

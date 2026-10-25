@@ -1,0 +1,8 @@
+# actionlint 1.7.12 does not know the job.workflow_repository / workflow_ref /
+# workflow_sha contexts, which GitHub provides to reusable workflows (and which
+# kioskd's publish workflow already relies on). Ignore only that finding, only
+# in the two reusable workflows.
+paths:
+  .github/workflows/kioskit-*.yml:
+    ignore:
+      - 'property "workflow_(repository|ref|sha)" is not defined in object type'

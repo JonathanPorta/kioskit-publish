@@ -1,0 +1,24 @@
+# blessed/release-surfaces/v1 — this repository is the public GitHub mirror
+# for kioskd's prebuilt, signed `kioskit-publish` binary and the reusable
+# workflows that run it (blessed releases.surfaces@1; kioskit#137 AC-14).
+#
+# Private kioskd produces and signs the candidate in its own GitHub Release and
+# holds NO credential for this repository. The owner dispatches mirror.yml
+# (workflow_dispatch, the promotion transport), which pulls the candidate with a
+# read-only token, verifies it against release-trusted-keys.json, creates the
+# immutable release with this repository's own authority (surface-pull), and
+# opens the promotion PR that a human reviews and merges.
+schema: blessed/release-surfaces/v1
+product: kioskit
+surfaces:
+  - id: publisher
+    kind: public-github-mirror
+    owner_repo: JonathanPorta/kioskit-publish
+    producer_repos:
+      - JonathanPorta/kioskd
+    consumer_contract:
+      - github-reusable-workflow-ref
+      - github-release-download
+    access_model: public-anonymous
+    publisher_model: surface-pull
+    promotion_transport: workflow_dispatch

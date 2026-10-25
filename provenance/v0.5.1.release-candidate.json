@@ -1,0 +1,526 @@
+{
+  "artifacts": [
+    {
+      "filename": "kioskitd_0.5.1_release.json",
+      "id": "agent-metadata-index",
+      "install_kind": "other",
+      "platform": "any",
+      "sha256": "a2f9b2d358eaf5908865a96710dd9ef5eea88bd401493edc49a6f26116ce9375",
+      "signature": "kioskitd_0.5.1_release.json.sig",
+      "size": 2341
+    },
+    {
+      "filename": "kioskitd_0.5.1_darwin_amd64",
+      "id": "darwin-amd64-binary",
+      "install_kind": "binary",
+      "platform": "darwin/amd64",
+      "sbom": "kioskitd_0.5.1_darwin_amd64.sbom.json",
+      "sha256": "862071ab45418464d3d653f4f76b3e0c6a2ecf777e0fcf94693d9171f462ffb0",
+      "signature": "kioskitd_0.5.1_darwin_amd64.sig",
+      "size": 8482912
+    },
+    {
+      "filename": "kioskitd_0.5.1_darwin_amd64.tar.gz",
+      "id": "darwin-amd64-tarball",
+      "install_kind": "tarball",
+      "platform": "darwin/amd64",
+      "sha256": "61bead2463100f7382c344004ce817426407126e1a3df8b24326205107e37ea7",
+      "signature": "kioskitd_0.5.1_darwin_amd64.tar.gz.sig",
+      "size": 3508554
+    },
+    {
+      "filename": "kioskitd_0.5.1_darwin_arm64",
+      "id": "darwin-arm64-binary",
+      "install_kind": "binary",
+      "platform": "darwin/arm64",
+      "sbom": "kioskitd_0.5.1_darwin_arm64.sbom.json",
+      "sha256": "26c0fdb1e8c84ba8c6c817ed3d75def1bb5964280434d02b577c866ec6a0400d",
+      "signature": "kioskitd_0.5.1_darwin_arm64.sig",
+      "size": 7851202
+    },
+    {
+      "filename": "kioskitd_0.5.1_darwin_arm64.tar.gz",
+      "id": "darwin-arm64-tarball",
+      "install_kind": "tarball",
+      "platform": "darwin/arm64",
+      "sha256": "92da0124d45217fcfa0f7778337a43640e8241b3fd16d18b07355d02816ce375",
+      "signature": "kioskitd_0.5.1_darwin_arm64.tar.gz.sig",
+      "size": 3218984
+    },
+    {
+      "filename": "kioskitd-0.5.1-1.aarch64.rpm",
+      "id": "linux-aarch64-rpm",
+      "install_kind": "rpm",
+      "platform": "linux/aarch64",
+      "sha256": "0b2b28c2a080825eaaf89250ea974ff1f0f908f070358bb1bf0e85ed9ff73cb1",
+      "signature": "kioskitd-0.5.1-1.aarch64.rpm.sig",
+      "size": 3282556
+    },
+    {
+      "filename": "kioskitd_0.5.1_linux_amd64",
+      "id": "linux-amd64-binary",
+      "install_kind": "binary",
+      "platform": "linux/amd64",
+      "sbom": "kioskitd_0.5.1_linux_amd64.sbom.json",
+      "sha256": "7c62ce8c9cc8d440bd6e0f295520cf66ac40ddbe953453233ea9cc8c420ede1f",
+      "signature": "kioskitd_0.5.1_linux_amd64.sig",
+      "size": 8323234
+    },
+    {
+      "filename": "kioskitd_0.5.1-1_amd64.deb",
+      "id": "linux-amd64-deb",
+      "install_kind": "deb",
+      "platform": "linux/amd64",
+      "sha256": "757119fff26101ac4e395be6090300c121a8ff2446a88a09e16523fa58c277ca",
+      "signature": "kioskitd_0.5.1-1_amd64.deb.sig",
+      "size": 3536042
+    },
+    {
+      "filename": "kioskit-publish_0.5.1_linux_amd64",
+      "id": "linux-amd64-kioskit-publish",
+      "install_kind": "other",
+      "platform": "linux/amd64",
+      "sha256": "8c09efcfa8fcfafb7afd8eae7f9d9a1c4b5a9ecf75a97731ae52059c3c755f14",
+      "signature": "kioskit-publish_0.5.1_linux_amd64.sig",
+      "size": 8286370
+    },
+    {
+      "filename": "kioskitd_0.5.1_linux_amd64.tar.gz",
+      "id": "linux-amd64-tarball",
+      "install_kind": "tarball",
+      "platform": "linux/amd64",
+      "sha256": "6fb6b88209663214498260590024901c014368366dcc845ca2ff00cad498a577",
+      "signature": "kioskitd_0.5.1_linux_amd64.tar.gz.sig",
+      "size": 3476969
+    },
+    {
+      "filename": "kioskitd_0.5.1_linux_arm",
+      "id": "linux-arm-binary",
+      "install_kind": "binary",
+      "platform": "linux/arm",
+      "sbom": "kioskitd_0.5.1_linux_arm.sbom.json",
+      "sha256": "ac8e254099578fd4ea5c192187bb3d59a4d0dbb7d45385f524e8b1064089a60e",
+      "signature": "kioskitd_0.5.1_linux_arm.sig",
+      "size": 7995554
+    },
+    {
+      "filename": "kioskitd_0.5.1_linux_arm.tar.gz",
+      "id": "linux-arm-tarball",
+      "install_kind": "tarball",
+      "platform": "linux/arm",
+      "sha256": "7bbabd45fa0687dedae07a182b1d7546f5c9cd60f3aef5d29177a32c2074dc50",
+      "signature": "kioskitd_0.5.1_linux_arm.tar.gz.sig",
+      "size": 3344083
+    },
+    {
+      "filename": "kioskitd_0.5.1_linux_arm64",
+      "id": "linux-arm64-binary",
+      "install_kind": "binary",
+      "platform": "linux/arm64",
+      "sbom": "kioskitd_0.5.1_linux_arm64.sbom.json",
+      "sha256": "5ac416b9d2b7eb629c43da0817afb82e0cfc347e772d32f5ac2913aad5677375",
+      "signature": "kioskitd_0.5.1_linux_arm64.sig",
+      "size": 7667874
+    },
+    {
+      "filename": "kioskitd_0.5.1-1_arm64.deb",
+      "id": "linux-arm64-deb",
+      "install_kind": "deb",
+      "platform": "linux/arm64",
+      "sha256": "7d3d7d83ed8fd7b340a2fa4ad2424f990371179addbbf60a51ae078d06d0023d",
+      "signature": "kioskitd_0.5.1-1_arm64.deb.sig",
+      "size": 3200300
+    },
+    {
+      "filename": "kioskitd_0.5.1_linux_arm64.tar.gz",
+      "id": "linux-arm64-tarball",
+      "install_kind": "tarball",
+      "platform": "linux/arm64",
+      "sha256": "8568627da3537b6b1d863393e82ae9e2e9c332701cb7780a89d379d8837d450d",
+      "signature": "kioskitd_0.5.1_linux_arm64.tar.gz.sig",
+      "size": 3121627
+    },
+    {
+      "filename": "kioskitd_0.5.1-1_armhf.deb",
+      "id": "linux-armhf-deb",
+      "install_kind": "deb",
+      "platform": "linux/armhf",
+      "sha256": "23e1007b3d4a2caaa3665fff03c798157bd11590fb812907bb1ff57131789d3d",
+      "signature": "kioskitd_0.5.1-1_armhf.deb.sig",
+      "size": 3418170
+    },
+    {
+      "filename": "kioskitd-0.5.1-1.x86_64.rpm",
+      "id": "linux-x86_64-rpm",
+      "install_kind": "rpm",
+      "platform": "linux/x86_64",
+      "sha256": "b4f14e82bd5a74a57996a68dfc039882b22c5825e22083c852f63cefa8935d93",
+      "signature": "kioskitd-0.5.1-1.x86_64.rpm.sig",
+      "size": 3650158
+    },
+    {
+      "filename": "kioskitd-0.5.1-1.aarch64.rpm.rpm-finalization.json",
+      "id": "rpm-finalization.kioskitd-0.5.1-1.aarch64.rpm",
+      "install_kind": "other",
+      "platform": "linux/aarch64",
+      "sha256": "1c13ea5d681aebb69fbfeddfff85c56f5c77c0d66e409e57000452e1a8164775",
+      "signature": "kioskitd-0.5.1-1.aarch64.rpm.rpm-finalization.json.sig",
+      "size": 486
+    },
+    {
+      "filename": "kioskitd-0.5.1-1.x86_64.rpm.rpm-finalization.json",
+      "id": "rpm-finalization.kioskitd-0.5.1-1.x86_64.rpm",
+      "install_kind": "other",
+      "platform": "linux/x86_64",
+      "sha256": "a7b4f4750331b881159598759e7e322829b8bb973c77ce9456d5f75dfd7d2f20",
+      "signature": "kioskitd-0.5.1-1.x86_64.rpm.rpm-finalization.json.sig",
+      "size": 485
+    },
+    {
+      "filename": "kioskitd_0.5.1_windows_amd64.zip",
+      "id": "windows-amd64-archive",
+      "install_kind": "archive",
+      "platform": "windows/amd64",
+      "sha256": "32e0a07f2e257c5053a12581f63b2b6b5301098c5860362d60525bad3ed9e9d0",
+      "signature": "kioskitd_0.5.1_windows_amd64.zip.sig",
+      "size": 3594774
+    },
+    {
+      "filename": "kioskitd_0.5.1_windows_amd64.exe",
+      "id": "windows-amd64-binary",
+      "install_kind": "binary",
+      "platform": "windows/amd64",
+      "sbom": "kioskitd_0.5.1_windows_amd64.sbom.json",
+      "sha256": "110986324c58c40ac18bbe256e423e5b088cd7cdfaa13b831dbdadbd827cdb94",
+      "signature": "kioskitd_0.5.1_windows_amd64.exe.sig",
+      "size": 8720384
+    }
+  ],
+  "build_sha": "460b89536034a1a7bac7ebe9c9f799dac439878d",
+  "component": "kioskitd",
+  "created_at": "2026-10-25T18:04:07Z",
+  "files": [
+    {
+      "name": "SHA256SUMS",
+      "role": "checksums",
+      "sha256": "8785d112ced01ade9ff4a5de1d0ab0ab8e7a131da1bab618a831819910740ce2",
+      "size": 4992
+    },
+    {
+      "name": "kioskit-publish_0.5.1_linux_amd64",
+      "role": "artifact",
+      "sha256": "8c09efcfa8fcfafb7afd8eae7f9d9a1c4b5a9ecf75a97731ae52059c3c755f14",
+      "size": 8286370
+    },
+    {
+      "name": "kioskit-publish_0.5.1_linux_amd64.sig",
+      "role": "signature",
+      "sha256": "0b893e0737c1e29c6d6178275c718c33a71677d6a13b4609b126a7e077bb0d5f",
+      "size": 88
+    },
+    {
+      "name": "kioskitd-0.5.1-1.aarch64.rpm",
+      "role": "artifact",
+      "sha256": "0b2b28c2a080825eaaf89250ea974ff1f0f908f070358bb1bf0e85ed9ff73cb1",
+      "size": 3282556
+    },
+    {
+      "name": "kioskitd-0.5.1-1.aarch64.rpm.rpm-finalization.json",
+      "role": "artifact",
+      "sha256": "1c13ea5d681aebb69fbfeddfff85c56f5c77c0d66e409e57000452e1a8164775",
+      "size": 486
+    },
+    {
+      "name": "kioskitd-0.5.1-1.aarch64.rpm.rpm-finalization.json.sig",
+      "role": "signature",
+      "sha256": "04dd33a57604aca21515836336969a00054aa423a9dbae6a1d3391ce6abccc25",
+      "size": 88
+    },
+    {
+      "name": "kioskitd-0.5.1-1.aarch64.rpm.sig",
+      "role": "signature",
+      "sha256": "3d139ce67425a9ba442cff03230d85df23567a16a15478107189fe026fba58bf",
+      "size": 88
+    },
+    {
+      "name": "kioskitd-0.5.1-1.x86_64.rpm",
+      "role": "artifact",
+      "sha256": "b4f14e82bd5a74a57996a68dfc039882b22c5825e22083c852f63cefa8935d93",
+      "size": 3650158
+    },
+    {
+      "name": "kioskitd-0.5.1-1.x86_64.rpm.rpm-finalization.json",
+      "role": "artifact",
+      "sha256": "a7b4f4750331b881159598759e7e322829b8bb973c77ce9456d5f75dfd7d2f20",
+      "size": 485
+    },
+    {
+      "name": "kioskitd-0.5.1-1.x86_64.rpm.rpm-finalization.json.sig",
+      "role": "signature",
+      "sha256": "01aa7ae4835269af181589d928bc050b34fbaae865537f04d613f6a77dd37927",
+      "size": 88
+    },
+    {
+      "name": "kioskitd-0.5.1-1.x86_64.rpm.sig",
+      "role": "signature",
+      "sha256": "ea9d4ed24a9275505b9cba10b1323a54731c11a5d494b6ee938a67ceda7317b3",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1-1_amd64.deb",
+      "role": "artifact",
+      "sha256": "757119fff26101ac4e395be6090300c121a8ff2446a88a09e16523fa58c277ca",
+      "size": 3536042
+    },
+    {
+      "name": "kioskitd_0.5.1-1_amd64.deb.sig",
+      "role": "signature",
+      "sha256": "2f5a2ca956a81d9f42a34dd289f901ed6dd65d344c991c084377982d56e6640f",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1-1_arm64.deb",
+      "role": "artifact",
+      "sha256": "7d3d7d83ed8fd7b340a2fa4ad2424f990371179addbbf60a51ae078d06d0023d",
+      "size": 3200300
+    },
+    {
+      "name": "kioskitd_0.5.1-1_arm64.deb.sig",
+      "role": "signature",
+      "sha256": "9bf62ab41c64048b3c46ad576e20c4b7afc109c4c107b3fbbaa61ba35919620f",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1-1_armhf.deb",
+      "role": "artifact",
+      "sha256": "23e1007b3d4a2caaa3665fff03c798157bd11590fb812907bb1ff57131789d3d",
+      "size": 3418170
+    },
+    {
+      "name": "kioskitd_0.5.1-1_armhf.deb.sig",
+      "role": "signature",
+      "sha256": "02ee7fdead54ec6130b351bf57e0af7ea1fc83c6f15d5216848ec095be41a93d",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_amd64",
+      "role": "artifact",
+      "sha256": "862071ab45418464d3d653f4f76b3e0c6a2ecf777e0fcf94693d9171f462ffb0",
+      "size": 8482912
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_amd64.sbom.json",
+      "role": "sbom",
+      "sha256": "39905ab2defbf8e6a936208316fab0d6970e5de8c4cdf7b5dbf29afd916fd3fd",
+      "size": 1609
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_amd64.sig",
+      "role": "signature",
+      "sha256": "4e062d4b3787c9aec3a2a47858cb7e0860141def07df52faeb53cd7e963bc33b",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_amd64.tar.gz",
+      "role": "artifact",
+      "sha256": "61bead2463100f7382c344004ce817426407126e1a3df8b24326205107e37ea7",
+      "size": 3508554
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_amd64.tar.gz.sig",
+      "role": "signature",
+      "sha256": "96699c4cf8719739023871ef6dd5ebc4467c5891822bbef88cce9f9de7cf3ea8",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_arm64",
+      "role": "artifact",
+      "sha256": "26c0fdb1e8c84ba8c6c817ed3d75def1bb5964280434d02b577c866ec6a0400d",
+      "size": 7851202
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_arm64.sbom.json",
+      "role": "sbom",
+      "sha256": "39905ab2defbf8e6a936208316fab0d6970e5de8c4cdf7b5dbf29afd916fd3fd",
+      "size": 1609
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_arm64.sig",
+      "role": "signature",
+      "sha256": "dbbcedbda18618bc169885fc734edee15562ea562c669e89dea417752cc70a49",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_arm64.tar.gz",
+      "role": "artifact",
+      "sha256": "92da0124d45217fcfa0f7778337a43640e8241b3fd16d18b07355d02816ce375",
+      "size": 3218984
+    },
+    {
+      "name": "kioskitd_0.5.1_darwin_arm64.tar.gz.sig",
+      "role": "signature",
+      "sha256": "1d0f067b51a4a775f9b48f775595680218d8180f9f44248d8ede5fdfcdc96186",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_amd64",
+      "role": "artifact",
+      "sha256": "7c62ce8c9cc8d440bd6e0f295520cf66ac40ddbe953453233ea9cc8c420ede1f",
+      "size": 8323234
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_amd64.sbom.json",
+      "role": "sbom",
+      "sha256": "39905ab2defbf8e6a936208316fab0d6970e5de8c4cdf7b5dbf29afd916fd3fd",
+      "size": 1609
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_amd64.sig",
+      "role": "signature",
+      "sha256": "7e65dad803c767d2527ba56f4da7100fa0e1b7cd48181b6bff24c9e2d9e72b4b",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_amd64.tar.gz",
+      "role": "artifact",
+      "sha256": "6fb6b88209663214498260590024901c014368366dcc845ca2ff00cad498a577",
+      "size": 3476969
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_amd64.tar.gz.sig",
+      "role": "signature",
+      "sha256": "6cbf56158371ebdccaa98fcd4cf37a467d055a84f5a2d9da61c68e5960ca7afd",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm",
+      "role": "artifact",
+      "sha256": "ac8e254099578fd4ea5c192187bb3d59a4d0dbb7d45385f524e8b1064089a60e",
+      "size": 7995554
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm.sbom.json",
+      "role": "sbom",
+      "sha256": "39905ab2defbf8e6a936208316fab0d6970e5de8c4cdf7b5dbf29afd916fd3fd",
+      "size": 1609
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm.sig",
+      "role": "signature",
+      "sha256": "0baa1a57514db5e6fb38f1ce62804f2978ba0c50d959141350a261ebd9b0a2e1",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm.tar.gz",
+      "role": "artifact",
+      "sha256": "7bbabd45fa0687dedae07a182b1d7546f5c9cd60f3aef5d29177a32c2074dc50",
+      "size": 3344083
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm.tar.gz.sig",
+      "role": "signature",
+      "sha256": "36105c92ab096be9c3ca5735d2e5e60b3a4fe745b8129ed2e278c55afd418c6c",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm64",
+      "role": "artifact",
+      "sha256": "5ac416b9d2b7eb629c43da0817afb82e0cfc347e772d32f5ac2913aad5677375",
+      "size": 7667874
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm64.sbom.json",
+      "role": "sbom",
+      "sha256": "39905ab2defbf8e6a936208316fab0d6970e5de8c4cdf7b5dbf29afd916fd3fd",
+      "size": 1609
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm64.sig",
+      "role": "signature",
+      "sha256": "70ced7b0d2b8f96b7176be80a67e29f379cfacfa4dbc23d2ed334f40e20c0934",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm64.tar.gz",
+      "role": "artifact",
+      "sha256": "8568627da3537b6b1d863393e82ae9e2e9c332701cb7780a89d379d8837d450d",
+      "size": 3121627
+    },
+    {
+      "name": "kioskitd_0.5.1_linux_arm64.tar.gz.sig",
+      "role": "signature",
+      "sha256": "c36b92bb8e7377e3f2123175bfa05a6f4aaaf04080c2fdbab3acdce5b84b9f0e",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_release.json",
+      "role": "artifact",
+      "sha256": "a2f9b2d358eaf5908865a96710dd9ef5eea88bd401493edc49a6f26116ce9375",
+      "size": 2341
+    },
+    {
+      "name": "kioskitd_0.5.1_release.json.sig",
+      "role": "signature",
+      "sha256": "478ae0d861b72a76c2736bbbd4a4d2fbdb58ba19030dc78230083a886646ef7a",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_windows_amd64.exe",
+      "role": "artifact",
+      "sha256": "110986324c58c40ac18bbe256e423e5b088cd7cdfaa13b831dbdadbd827cdb94",
+      "size": 8720384
+    },
+    {
+      "name": "kioskitd_0.5.1_windows_amd64.exe.sig",
+      "role": "signature",
+      "sha256": "06faa961b07aacab6a42ef652c2285f23db713417e4c17c9e3da79e06f7972cb",
+      "size": 88
+    },
+    {
+      "name": "kioskitd_0.5.1_windows_amd64.sbom.json",
+      "role": "sbom",
+      "sha256": "39905ab2defbf8e6a936208316fab0d6970e5de8c4cdf7b5dbf29afd916fd3fd",
+      "size": 1609
+    },
+    {
+      "name": "kioskitd_0.5.1_windows_amd64.zip",
+      "role": "artifact",
+      "sha256": "32e0a07f2e257c5053a12581f63b2b6b5301098c5860362d60525bad3ed9e9d0",
+      "size": 3594774
+    },
+    {
+      "name": "kioskitd_0.5.1_windows_amd64.zip.sig",
+      "role": "signature",
+      "sha256": "3b4ed13c20070ce8e9d85bdbf1248d893a39eb9b3d7bd3880a2983ce959f4740",
+      "size": 88
+    },
+    {
+      "name": "provenance.json",
+      "role": "provenance",
+      "sha256": "d31dbc9561b51afd20d0e76b72f87cefbb05306b688b0cfd6c87ad04b134a09b",
+      "size": 369
+    },
+    {
+      "name": "release-notes-public.md",
+      "role": "notes",
+      "sha256": "f2bfc61f4fd167c6fe365d9365e272cc0d21658d888feb22b3df191ca7c7f8a8",
+      "size": 329
+    }
+  ],
+  "producer_repo": "JonathanPorta/kioskd",
+  "project": "kioskit",
+  "public_notes": {
+    "filename": "release-notes-public.md",
+    "sha256": "f2bfc61f4fd167c6fe365d9365e272cc0d21658d888feb22b3df191ca7c7f8a8"
+  },
+  "schema": "blessed/release-candidate/v1",
+  "signing": {
+    "artifacts": "required",
+    "key_id": "kioskitd-2026-01",
+    "manifest_signature": "release-candidate.json.sig",
+    "profile": "ed25519-detached-v1"
+  },
+  "source_sha": "460b89536034a1a7bac7ebe9c9f799dac439878d",
+  "tag": "v0.5.1",
+  "version": "0.5.1"
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "blessed/public-github-mirror-provenance/v1",
+  "source_repo": "JonathanPorta/kioskd",
+  "source_ref": "v0.5.1",
+  "source_sha": "460b89536034a1a7bac7ebe9c9f799dac439878d",
+  "mirror_repo": "JonathanPorta/kioskit-publish",
+  "mirror_ref": "v0.5.1",
+  "built_at": "2026-10-25T18:04:07Z",
+  "public_files": [
+    "kioskit-publish_0.5.1_linux_amd64",
+    "kioskit-publish_0.5.1_linux_amd64.sig",
+    "release-candidate.json",
+    "release-candidate.json.sig",
+    "SHA256SUMS"
+  ]
+}
