@@ -220,8 +220,8 @@ minputs="$(yq -r '.on.workflow_dispatch.inputs // {} | keys | sort | join(",")' 
 mkeys="$(yq -r '.env // {} | keys | sort | join(",")' "$MIR")"
 [ "$mkeys" = "PUBLISHER_KEY_ID,PUBLISHER_PUBKEY_B64" ] && ok "mirror.yml env is exactly the key pins" || no "mirror.yml env keys are [$mkeys]"
 nsec="$(body "$MIR" | grep -o 'secrets\.[A-Za-z0-9_]*' | sort -u | tr '\n' ' ')"
-[ "$nsec" = "secrets.KIOSKD_RELEASE_READ_TOKEN " ] && [ "$(body "$MIR" | grep -c 'secrets\.')" = "1" ] &&
-  ok "exactly one secret reference: secrets.KIOSKD_RELEASE_READ_TOKEN" || no "secret references are [$nsec]; want exactly one secrets.KIOSKD_RELEASE_READ_TOKEN"
+[ "$nsec" = "secrets.KIOSKD_RELEASE_READ " ] && [ "$(body "$MIR" | grep -c 'secrets\.')" = "1" ] &&
+  ok "exactly one secret reference: secrets.KIOSKD_RELEASE_READ" || no "secret references are [$nsec]; want exactly one secrets.KIOSKD_RELEASE_READ"
 tjob="$(yq -r '.jobs | to_entries | map(select(.value.steps[]? | (.env // {}) | to_entries[] | .value | test("secrets\\."))) | .[].key' "$MIR" | sort -u)"
 tstep="$(yq -r '.jobs[].steps[] | select((.env // {}) | to_entries[] | .value | test("secrets\\.")) | .id // ""' "$MIR")"
 if [ "$(printf '%s\n' "$tjob" | grep -c .)" = "1" ] && [ "$tstep" = "fetch" ]; then

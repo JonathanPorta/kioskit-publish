@@ -8,7 +8,7 @@ name: Mirror a kioskd publisher release
 #
 #   fetch    (Environment `mirror`, required reviewer, contents:read)
 #            refuses an existing tag/release, then fetches kioskd's release
-#            v<version> with KIOSKD_RELEASE_READ_TOKEN (Contents: read on
+#            v<version> with KIOSKD_RELEASE_READ (Contents: read on
 #            kioskd; ONLY the fetch step sees it), and verifies the signed
 #            manifest, the binary's digest and signature, and SHA256SUMS
 #            against the committed release-trusted-keys.json.
@@ -78,7 +78,7 @@ jobs:
       - name: Fetch kioskd's release (read-only token)
         id: fetch
         env:
-          GH_TOKEN: ${{ secrets.KIOSKD_RELEASE_READ_TOKEN }}
+          GH_TOKEN: ${{ secrets.KIOSKD_RELEASE_READ }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
