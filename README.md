@@ -151,8 +151,10 @@ What a caller's job runs is fixed by the commit `<S>` it pins:
   fleet's self-update anchor. `release-trusted-keys.json` is a byte-for-byte
   copy of kioskd's. kioskd's self-updater refuses any artifact that isn't
   `kioskitd_*`, so a signed publisher can't be passed off as a daemon update.
-- **The mirror's credential.** `KIOSKD_RELEASE_READ_TOKEN` (Contents: read on
-  kioskd only) lives in the `mirror` Environment. That Environment needs a
+- **The mirror's credential.** `KIOSKD_RELEASE_READ` (Contents: read on
+  kioskd only) lives in the `mirror` Environment. On GitHub it's the
+  fine-grained PAT named `kioskit-publish - KIOSKD_RELEASE_READ`
+  (blessed-cicd#401). That Environment needs a
   reviewer and allows protected branches only. Only the fetch step of
   `mirror.yml` sees the token. The job that writes the release and the PR has
   no secret. kioskd holds no credential for this repository, so `mirror.yml`
